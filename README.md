@@ -8,6 +8,7 @@ Compiled with allegro 4.4, alpng, and math.h
 Controls
 ===========
 
-Arrow keys to move point around.
+Arrow keys/WASD to move the point around.
+Click/Space to fire bullets at the mouse cursor.
 
 
