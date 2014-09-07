@@ -69,10 +69,10 @@ void update(){
     angle_y=cos(angle_degrees);
 
     //Moves the point
-    if(key[KEY_LEFT])point_x--;
-    if(key[KEY_RIGHT])point_x++;
-    if(key[KEY_UP])point_y--;
-    if(key[KEY_DOWN])point_y++;
+    if(key[KEY_LEFT] || key[KEY_A])point_x--;
+    if(key[KEY_RIGHT] || key[KEY_D])point_x++;
+    if(key[KEY_UP] || key[KEY_W])point_y--;
+    if(key[KEY_DOWN] || key[KEY_S])point_y++;
 
     //Draws the screen
     rectfill(buffer,0,0,800,600,makecol(255,255,250));
@@ -92,7 +92,7 @@ void update(){
     draw_sprite(screen,buffer,0,0);
 
     bullet_delay++;
-    if(key[KEY_SPACE] && bullet_delay>9){
+    if(key[KEY_SPACE] && bullet_delay>9 || mouse_b & 1 && bullet_delay>9 ){
         create_bullet=true;
         bullet_delay=0;
     }
@@ -103,17 +103,17 @@ void update(){
            bullets[i].y+=bullets[i].vector_y;
 
 
-           if(bullets[i].x>800 || bullets[i].y>600)bullets[i].on_screen=false;
+           if(bullets[i].x>800 || bullets[i].y>600 || bullets[i].x<0 || bullets[i].y<0)bullets[i].on_screen=false;
         }else if(create_bullet==true){
             bullets[i].on_screen=true;
             create_bullet=false;
-            bullets[i].x=400;
-            bullets[i].y=300;
+            bullets[i].x=point_x;
+            bullets[i].y=point_y;
             bullets[i].vector_x=-2*cos(angle_radians);
             bullets[i].vector_y=-2*sin(angle_radians);
         }
     }
-    rest(5);
+    rest(2);
 }
 
 
