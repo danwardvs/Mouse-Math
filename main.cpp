@@ -14,6 +14,9 @@ float angle_allegro;
 float tan_1;
 float tan_2;
 
+int point_x=400;
+int point_y=300;
+
 unsigned int positive_mouse_x;
 unsigned int positive_mouse_y;
 
@@ -25,7 +28,20 @@ void abort_on_error(const char *message){
 	 allegro_message("%s.\n %s\n", message, allegro_error);
 	 exit(-1);
 }
+int distance_to_object(int x_1, int y_1,int x_2,int y_2){
+    return sqrt((pow(x_1-x_2,2))+(pow(y_1-y_2,2)));
 
+}
+float find_angle(int x_1, int y_1, int x_2, int y_2){
+        float tan_1;
+        float tan_2;
+        if(x_1-x_2!=0 && y_1-y_2!=0){
+            tan_1=y_1-y_2;
+            tan_2=x_1-x_2;
+        }
+
+    return atan2(tan_1,tan_2);
+}
 
 void update(){
 
@@ -35,14 +51,10 @@ void update(){
     float mouse_y_float=mouse_y;
 
     draw_sprite(buffer,cursor,mouse_x,mouse_y);
-    putpixel(buffer,400,300,makecol(0,0,0));
-    distance_to_mouse=sqrt((pow(mouse_x-400,2))+(pow(mouse_y-300,2)));
+    putpixel(buffer,point_x,point_y,makecol(0,0,0));
 
-    if(400-mouse_x!=0 && 300-mouse_y!=0){
-            tan_1=400-mouse_x;
-            tan_2=300-mouse_y;
-    }
-    angle_radians=atan2(tan_2,tan_1);
+    distance_to_mouse=distance_to_object(mouse_x,mouse_y,point_x,point_y);
+    angle_radians=find_angle(point_x,point_y,mouse_x,mouse_y);
 
     angle_degrees=(angle_radians*57.2957795);
     angle_allegro=(angle_degrees/1.41176470588);
@@ -54,9 +66,12 @@ void update(){
     textprintf_ex(buffer,font,5,45,makecol(0,0,0),-1,"Angle,degrees:%4.2f",angle_degrees);
     textprintf_ex(buffer,font,5,55,makecol(0,0,0),-1,"Angle,allegro:%4.2f",angle_allegro);
 
+    if(key[KEY_LEFT])point_x--;
+    if(key[KEY_RIGHT])point_x++;
+    if(key[KEY_UP])point_y--;
+    if(key[KEY_DOWN])point_y++;
 
-
-    rotate_sprite(buffer,pointer,370,270,itofix(angle_allegro));
+    rotate_sprite(buffer,pointer,point_x-30,point_y-30,itofix(angle_allegro));
     draw_sprite(screen,buffer,0,0);
 
 
