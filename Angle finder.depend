@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1410062412 source:c:\users\danward\documents\github\angle finder\main.cpp
+	<allegro.h>
+	<alpng.h>
+	<cmath>
+
