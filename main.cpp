@@ -20,6 +20,33 @@ float angle_y;
 bool create_bullet;
 int bullet_delay;
 
+// FPS System
+volatile int ticks = 0;
+const int updates_per_second = 60;
+volatile int game_time = 0;
+
+int fps;
+int frames_done;
+int old_time;
+
+bool close_button_pressed;
+
+void ticker(){
+  ticks++;
+}
+END_OF_FUNCTION(ticker)
+
+void game_time_ticker(){
+  game_time++;
+}
+END_OF_FUNCTION(ticker)
+
+void close_button_handler(void){
+  close_button_pressed = TRUE;
+}
+END_OF_FUNCTION(close_button_handler)
+
+
 struct bullet{
     float x;
     float y;
@@ -46,12 +73,14 @@ int distance_to_object(int x_1, int y_1,int x_2,int y_2){
 float find_angle(int x_1, int y_1, int x_2, int y_2){
     float tan_1;
     float tan_2;
-    if(x_1-x_2!=0 && y_1-y_2!=0){
-        tan_1=y_1-y_2;
-        tan_2=x_1-x_2;
-    }
 
+    tan_1=y_1-y_2;
+    tan_2=x_1-x_2;
     return atan2(tan_1,tan_2);
+
+
+
+
 }
 
 
@@ -74,25 +103,8 @@ void update(){
     if(key[KEY_UP] || key[KEY_W])point_y--;
     if(key[KEY_DOWN] || key[KEY_S])point_y++;
 
-    //Draws the screen
-    rectfill(buffer,0,0,800,600,makecol(255,255,250));
-    textprintf_ex(buffer,font,5,5,makecol(0,0,0),-1,"Mouse X:%i",mouse_x);
-    textprintf_ex(buffer,font,5,15,makecol(0,0,0),-1,"Mouse Y:%i",mouse_y);
-    textprintf_ex(buffer,font,5,25,makecol(0,0,0),-1,"Distance to mouse:%4.2f",distance_to_mouse);
-    textprintf_ex(buffer,font,5,35,makecol(0,0,0),-1,"Radians:%4.2f,Degrees%4.2f,Allegro%4.2f",angle_radians,angle_degrees,angle_allegro);
-    textprintf_ex(buffer,font,5,45,makecol(0,0,0),-1,"Vector X:%4.2f,Vector Y:%4.2f",angle_x,angle_y);
-    rotate_sprite(buffer,pointer,point_x-30,point_y-30,itofix(angle_allegro));
-    putpixel(buffer,point_x,point_y,makecol(0,0,0));
-    for(int i=0; i<100; i++){
-        if(bullets[i].on_screen){
-            putpixel(buffer,bullets[i].x,bullets[i].y,makecol(255,0,0));
-        }
-    }
-    draw_sprite(buffer,cursor,mouse_x,mouse_y);
-    draw_sprite(screen,buffer,0,0);
-
     bullet_delay++;
-    if(key[KEY_SPACE] && bullet_delay>9 || mouse_b & 1 && bullet_delay>9 ){
+    if(key[KEY_SPACE] && bullet_delay>3 || mouse_b & 1 && bullet_delay>3 ){
         create_bullet=true;
         bullet_delay=0;
     }
@@ -109,11 +121,36 @@ void update(){
             create_bullet=false;
             bullets[i].x=point_x;
             bullets[i].y=point_y;
-            bullets[i].vector_x=-2*cos(angle_radians);
-            bullets[i].vector_y=-2*sin(angle_radians);
+            bullets[i].vector_x=-5*cos(angle_radians);
+            bullets[i].vector_y=-5*sin(angle_radians);
         }
     }
-    rest(2);
+
+}
+
+void draw(){
+   //Draws the screen
+    rectfill(buffer,0,0,800,600,makecol(255,255,250));
+    textprintf_ex(buffer,font,5,5,makecol(0,0,0),-1,"Mouse X:%i",mouse_x);
+    textprintf_ex(buffer,font,5,15,makecol(0,0,0),-1,"Mouse Y:%i",mouse_y);
+    textprintf_ex(buffer,font,5,25,makecol(0,0,0),-1,"Distance to mouse:%4.2f",distance_to_mouse);
+    textprintf_ex(buffer,font,5,35,makecol(0,0,0),-1,"Radians:%4.2f,Degrees%4.2f,Allegro%4.2f",angle_radians,angle_degrees,angle_allegro);
+    textprintf_ex(buffer,font,5,45,makecol(0,0,0),-1,"Vector X:%4.2f,Vector Y:%4.2f",angle_x,angle_y);
+    rotate_sprite(buffer,pointer,point_x-30,point_y-30,itofix(angle_allegro));
+    putpixel(buffer,point_x,point_y,makecol(0,0,0));
+    for(int i=0; i<100; i++){
+        if(bullets[i].on_screen){
+            putpixel(buffer,bullets[i].x,bullets[i].y,makecol(255,0,0));
+            putpixel(buffer,bullets[i].x,bullets[i].y-1,makecol(255,0,0));
+            putpixel(buffer,bullets[i].x+1,bullets[i].y,makecol(255,0,0));
+            putpixel(buffer,bullets[i].x+1,bullets[i].y-1,makecol(255,0,0));
+        }
+    }
+    draw_sprite(buffer,cursor,mouse_x,mouse_y);
+    draw_sprite(screen,buffer,0,0);
+
+
+
 }
 
 
@@ -124,6 +161,21 @@ void update(){
 
 
 void setup(){
+
+    // Setup for FPS system
+    LOCK_VARIABLE(ticks);
+    LOCK_FUNCTION(ticker);
+    install_int_ex(ticker, BPS_TO_TIMER(updates_per_second));
+
+    LOCK_VARIABLE(game_time);
+    LOCK_FUNCTION(game_time_ticker);
+    install_int_ex(game_time_ticker, BPS_TO_TIMER(10));
+
+    // Close button
+    LOCK_FUNCTION(close_button_handler);
+    set_close_button_callback(close_button_handler);
+
+
     buffer=create_bitmap(800,600);
 
     if(!(cursor = load_bitmap("cursor.png",NULL))){
@@ -152,14 +204,31 @@ int main(){
 
 
 
-  set_window_title("Angle Finder");
+  set_window_title("Mouse Math");
   setup();
 
 
-    while(!key[KEY_ESC]){
-        update();
-  	}
+    while(!key[KEY_ESC] && !close_button_pressed){
+       while(ticks == 0){
+            rest(1);
+        }
+    while(ticks > 0){
+        int old_ticks = ticks;
 
+        update();
+
+        ticks--;
+        if(old_ticks <= ticks){
+            break;
+        }
+    }
+        if(game_time - old_time >= 10){
+            fps = frames_done;
+            frames_done = 0;
+            old_time = game_time;
+        }
+        draw();
+    }
 	return 0;
 }
 END_OF_MAIN()
