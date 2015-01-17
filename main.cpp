@@ -86,6 +86,20 @@ void create_bullet(int new_x, int new_y, float new_vector_x, float new_vector_y,
     bullets.push_back(newBullet);
 }
 
+//Check to see if an area is clicked
+bool location_clicked(int min_x,int max_x,int min_y,int max_y){
+    if(mouse_x>min_x && mouse_x<max_x && mouse_y>min_y && mouse_y<max_y && mouse_b & 1)
+        return true;
+    else return false;
+}
+
+//Check to see if an area is hovered
+bool location_hovered(int min_x,int max_x,int min_y,int max_y){
+    if(mouse_x>min_x && mouse_x<max_x && mouse_y>min_y && mouse_y<max_y)
+        return true;
+    else return false;
+}
+
 //A function that handles error messages
 void abort_on_error(const char *message){
 	 if (screen != NULL){
@@ -133,7 +147,8 @@ void update(){
     if(key[KEY_DOWN] || key[KEY_S])point_y++;
 
     bullet_delay++;
-    if(key[KEY_SPACE] && bullet_delay>3 || mouse_b & 1 && bullet_delay>3 ){
+
+    if(key[KEY_SPACE] && bullet_delay>5 || mouse_b & 1 && bullet_delay>5 ){
         create_bullet(point_x,point_y,cos(angle_radians),sin(angle_radians),5);
         bullet_delay=0;
     }
@@ -143,19 +158,20 @@ void update(){
            bullets[i].x+=bullets[i].vector_x;
            bullets[i].y+=bullets[i].vector_y;
 
-
-        if(bullets[i].x>800 || bullets[i].y>600 || bullets[i].x<0 || bullets[i].y<0)
+        }
+        if(bullets[i].x>SCREEN_W || bullets[i].y>SCREEN_H || bullets[i].x<0 || bullets[i].y<0){
             if(!bullets_bounce)
               bullets[i].on_screen=false;
             else{
-              if(bullets[i].y>600 || bullets[i].y<0)
+              if(bullets[i].y>SCREEN_H || bullets[i].y<0)
                 bullets[i].vector_y=-bullets[i].vector_y;
-              if(bullets[i].x>800 || bullets[i].x<0)
+              if(bullets[i].x>SCREEN_W || bullets[i].x<0)
                 bullets[i].vector_x=-bullets[i].vector_x;
 
             }
-    }
+        }
   }
+  if(location_clicked(SCREEN_W-110,SCREEN_W,0,15))bullets.clear();
 }
 
 void draw(){
@@ -169,6 +185,12 @@ void draw(){
     textprintf_ex(buffer,font,5,25,makecol(0,0,0),-1,"Distance to mouse:%4.2f",distance_to_mouse);
     textprintf_ex(buffer,font,5,35,makecol(0,0,0),-1,"Radians:%4.2f,Degrees%4.2f",angle_radians,angle_degrees);
     textprintf_ex(buffer,font,5,45,makecol(0,0,0),-1,"Vector X:%4.2f,Vector Y:%4.2f",angle_x,angle_y);
+    textprintf_ex(buffer,font,5,55,makecol(0,0,0),-1,"Bullets on screen:%i",bullets.size());
+
+
+    //Draws the "Clear bullets" option red if hovered
+    if(location_hovered(SCREEN_W-110,SCREEN_W,0,15))textprintf_ex(buffer,font,SCREEN_W-110,5,makecol(255,0,0),-1,"Clear bullets");
+    else textprintf_ex(buffer,font,SCREEN_W-110,5,makecol(0,0,0),-1,"Clear bullets");
 
     //Draw the arrow
     rotate_sprite(buffer,pointer,point_x-30,point_y-30,itofix(angle_allegro));
