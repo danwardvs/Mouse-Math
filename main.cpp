@@ -44,8 +44,6 @@ int fps;
 int frames_done;
 int old_time;
 
-
-
 //FPS tick counter
 void ticker(){
   ticks++;
@@ -142,10 +140,10 @@ void update(){
     angle_y=cos(angle_degrees);
 
     //Moves the point
-    if(key[KEY_LEFT] || key[KEY_A])point_x--;
-    if(key[KEY_RIGHT] || key[KEY_D])point_x++;
-    if(key[KEY_UP] || key[KEY_W])point_y--;
-    if(key[KEY_DOWN] || key[KEY_S])point_y++;
+    if(key[KEY_LEFT] || key[KEY_A])point_x-=4;
+    if(key[KEY_RIGHT] || key[KEY_D])point_x+=4;
+    if(key[KEY_UP] || key[KEY_W])point_y-=4;
+    if(key[KEY_DOWN] || key[KEY_S])point_y+=4;
 
     bullet_delay++;
 
@@ -213,16 +211,7 @@ void draw(){
     //Draw everything in the buffer(everything is drawn to buffer) and draw it to the screen
     draw_sprite(screen,buffer,0,0);
 
-
-
 }
-
-
-
-
-
-
-
 
 void setup(){
 
@@ -249,11 +238,6 @@ void setup(){
         abort_on_error( "Cannot find pointer.png.\n Please check your files and try again.");
 
 }
-
-
-
-
-
 
 int main(){
 
