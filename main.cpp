@@ -1,6 +1,7 @@
 #include<allegro.h>
 #include<alpng.h>
 #include<cmath>
+#include<vector>
 //Allegro is used for graphics
 //Alpng is used to import .png's
 //Cmath is used for cos, tan, sin
@@ -25,8 +26,6 @@ int point_y=300;
 //Vectors of the mouse cursor
 float angle_x;
 float angle_y;
-
-bool create_bullet;
 
 bool bullets_bounce=true;
 
@@ -72,7 +71,20 @@ struct bullet{
     float vector_x;
     float vector_y;
     bool on_screen=false;
-}bullets[100];
+};
+
+std::vector<bullet> bullets;
+
+//Create new bullet
+void create_bullet(int new_x, int new_y, float new_vector_x, float new_vector_y, int new_speed){
+    bullet newBullet;
+    newBullet.on_screen=true;
+    newBullet.x=point_x;
+    newBullet.y=point_y;
+    newBullet.vector_x=-new_speed*new_vector_x;
+    newBullet.vector_y=-new_speed*new_vector_y;
+    bullets.push_back(newBullet);
+}
 
 //A function that handles error messages
 void abort_on_error(const char *message){
@@ -122,11 +134,11 @@ void update(){
 
     bullet_delay++;
     if(key[KEY_SPACE] && bullet_delay>3 || mouse_b & 1 && bullet_delay>3 ){
-        create_bullet=true;
+        create_bullet(point_x,point_y,cos(angle_radians),sin(angle_radians),5);
         bullet_delay=0;
     }
 
-    for(int i=0; i<100; i++){
+    for(int i=0; i<bullets.size(); i++){
         if(bullets[i].on_screen){
            bullets[i].x+=bullets[i].vector_x;
            bullets[i].y+=bullets[i].vector_y;
@@ -142,17 +154,8 @@ void update(){
                 bullets[i].vector_x=-bullets[i].vector_x;
 
             }
-
-        }else if(create_bullet==true){
-            bullets[i].on_screen=true;
-            create_bullet=false;
-            bullets[i].x=point_x;
-            bullets[i].y=point_y;
-            bullets[i].vector_x=-5*cos(angle_radians);
-            bullets[i].vector_y=-5*sin(angle_radians);
-        }
     }
-
+  }
 }
 
 void draw(){
@@ -171,7 +174,7 @@ void draw(){
     rotate_sprite(buffer,pointer,point_x-30,point_y-30,itofix(angle_allegro));
 
     //Iterates through the bullet struct and draws it if is on the screen
-    for(int i=0; i<100; i++){
+    for(int i=0; i<bullets.size(); i++){
       if(bullets[i].on_screen){
           //Uses the x and y and draws a cube
           putpixel(buffer,bullets[i].x,bullets[i].y,makecol(255,0,0));
