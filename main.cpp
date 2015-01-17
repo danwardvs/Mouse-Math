@@ -77,6 +77,7 @@ std::vector<bullet> bullets;
 
 //Create new bullet
 void create_bullet(int new_x, int new_y, float new_vector_x, float new_vector_y, int new_speed){
+    //Make a bullet "newBullet", pass the arguments from the function and put it into the vector
     bullet newBullet;
     newBullet.on_screen=true;
     newBullet.x=point_x;
@@ -148,7 +149,7 @@ void update(){
 
     bullet_delay++;
 
-    if(key[KEY_SPACE] && bullet_delay>5 || mouse_b & 1 && bullet_delay>5 ){
+    if(key[KEY_SPACE] && bullet_delay>3 || mouse_b & 1 && bullet_delay>3 ){
         create_bullet(point_x,point_y,cos(angle_radians),sin(angle_radians),5);
         bullet_delay=0;
     }
