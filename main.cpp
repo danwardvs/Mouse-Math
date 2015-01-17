@@ -28,6 +28,8 @@ float angle_y;
 
 bool create_bullet;
 
+bool bullets_bounce=true;
+
 //Timer used to shoot a bullet every x frames
 int bullet_delay;
 
@@ -130,7 +132,17 @@ void update(){
            bullets[i].y+=bullets[i].vector_y;
 
 
-           if(bullets[i].x>800 || bullets[i].y>600 || bullets[i].x<0 || bullets[i].y<0)bullets[i].on_screen=false;
+        if(bullets[i].x>800 || bullets[i].y>600 || bullets[i].x<0 || bullets[i].y<0)
+            if(!bullets_bounce)
+              bullets[i].on_screen=false;
+            else{
+              if(bullets[i].y>600 || bullets[i].y<0)
+                bullets[i].vector_y=-bullets[i].vector_y;
+              if(bullets[i].x>800 || bullets[i].x<0)
+                bullets[i].vector_x=-bullets[i].vector_x;
+
+            }
+
         }else if(create_bullet==true){
             bullets[i].on_screen=true;
             create_bullet=false;
