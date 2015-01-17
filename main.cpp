@@ -1,7 +1,11 @@
 #include<allegro.h>
 #include<alpng.h>
 #include<cmath>
+//Allegro is used for graphics
+//Alpng is used to import .png's
+//Cmath is used for cos, tan, sin
 
+//Declare the bitmaps
 BITMAP* buffer;
 BITMAP* cursor;
 BITMAP* pointer;
@@ -9,16 +13,26 @@ BITMAP* pointer;
 float distance_to_mouse;
 float angle_radians;
 float angle_degrees;
+
+//Allegro degrees are used to rotate sprites. Ranges from 0-255 for a full circle
 float angle_allegro;
 
+
+//Point that the bullets are spawned from
 int point_x=400;
 int point_y=300;
 
+//Vectors of the mouse cursor
 float angle_x;
 float angle_y;
 
 bool create_bullet;
+
+//Timer used to shoot a bullet every x frames
 int bullet_delay;
+
+//Used by the exit button function to tell main() to close the program
+bool close_button_pressed;
 
 // FPS System
 volatile int ticks = 0;
@@ -29,24 +43,27 @@ int fps;
 int frames_done;
 int old_time;
 
-bool close_button_pressed;
 
+
+//FPS tick counter
 void ticker(){
   ticks++;
 }
 END_OF_FUNCTION(ticker)
 
+//FPS timer
 void game_time_ticker(){
   game_time++;
 }
 END_OF_FUNCTION(ticker)
 
+//Checks if the close button is closed
 void close_button_handler(void){
   close_button_pressed = TRUE;
 }
 END_OF_FUNCTION(close_button_handler)
 
-
+//Struct holding the bullet data
 struct bullet{
     float x;
     float y;
@@ -76,14 +93,11 @@ float find_angle(int x_1, int y_1, int x_2, int y_2){
 
     tan_1=y_1-y_2;
     tan_2=x_1-x_2;
+
     return atan2(tan_1,tan_2);
-
-
-
-
 }
 
-
+//The logic of the program
 void update(){
 
     //Calls the function, solves the math
@@ -94,6 +108,7 @@ void update(){
     angle_degrees=(angle_radians*57.2957795);
     angle_allegro=(angle_degrees/1.41176470588);
 
+    //Gets the vector from the point pointing towards mouse cursor
     angle_x=sin(angle_degrees);
     angle_y=cos(angle_degrees);
 
@@ -129,24 +144,35 @@ void update(){
 }
 
 void draw(){
-   //Draws the screen
+
+    //Draws the white background
     rectfill(buffer,0,0,800,600,makecol(255,255,250));
+
+    //Draws the text in the top of the window
     textprintf_ex(buffer,font,5,5,makecol(0,0,0),-1,"Mouse X:%i",mouse_x);
     textprintf_ex(buffer,font,5,15,makecol(0,0,0),-1,"Mouse Y:%i",mouse_y);
     textprintf_ex(buffer,font,5,25,makecol(0,0,0),-1,"Distance to mouse:%4.2f",distance_to_mouse);
-    textprintf_ex(buffer,font,5,35,makecol(0,0,0),-1,"Radians:%4.2f,Degrees%4.2f,Allegro%4.2f",angle_radians,angle_degrees,angle_allegro);
+    textprintf_ex(buffer,font,5,35,makecol(0,0,0),-1,"Radians:%4.2f,Degrees%4.2f",angle_radians,angle_degrees);
     textprintf_ex(buffer,font,5,45,makecol(0,0,0),-1,"Vector X:%4.2f,Vector Y:%4.2f",angle_x,angle_y);
+
+    //Draw the arrow
     rotate_sprite(buffer,pointer,point_x-30,point_y-30,itofix(angle_allegro));
-    putpixel(buffer,point_x,point_y,makecol(0,0,0));
+
+    //Iterates through the bullet struct and draws it if is on the screen
     for(int i=0; i<100; i++){
-        if(bullets[i].on_screen){
-            putpixel(buffer,bullets[i].x,bullets[i].y,makecol(255,0,0));
-            putpixel(buffer,bullets[i].x,bullets[i].y-1,makecol(255,0,0));
-            putpixel(buffer,bullets[i].x+1,bullets[i].y,makecol(255,0,0));
-            putpixel(buffer,bullets[i].x+1,bullets[i].y-1,makecol(255,0,0));
-        }
+      if(bullets[i].on_screen){
+          //Uses the x and y and draws a cube
+          putpixel(buffer,bullets[i].x,bullets[i].y,makecol(255,0,0));
+          putpixel(buffer,bullets[i].x,bullets[i].y-1,makecol(255,0,0));
+          putpixel(buffer,bullets[i].x+1,bullets[i].y,makecol(255,0,0));
+          putpixel(buffer,bullets[i].x+1,bullets[i].y-1,makecol(255,0,0));
+      }
     }
+
+    //Draw cursor
     draw_sprite(buffer,cursor,mouse_x,mouse_y);
+
+    //Draw everything in the buffer(everything is drawn to buffer) and draw it to the screen
     draw_sprite(screen,buffer,0,0);
 
 
@@ -178,12 +204,12 @@ void setup(){
 
     buffer=create_bitmap(800,600);
 
-    if(!(cursor = load_bitmap("cursor.png",NULL))){
+    if(!(cursor = load_bitmap("cursor.png",NULL)))
         abort_on_error( "Cannot find cursor.png.\n Please check your files and try again.");
-    }
-    if(!(pointer = load_bitmap("pointer.png",NULL))){
+
+    if(!(pointer = load_bitmap("pointer.png",NULL)))
         abort_on_error( "Cannot find pointer.png.\n Please check your files and try again.");
-    }
+
 }
 
 
@@ -193,40 +219,38 @@ void setup(){
 
 int main(){
 
-  allegro_init();
-  alpng_init();
-  install_timer();
-  install_keyboard();
-  install_mouse();
-  set_color_depth(32);
+    allegro_init();
+    alpng_init();
+    install_timer();
+    install_keyboard();
+    install_mouse();
+    set_color_depth(32);
 
-  set_gfx_mode(GFX_AUTODETECT_WINDOWED, 800,600, 0, 0);
+    set_gfx_mode(GFX_AUTODETECT_WINDOWED, 800,600, 0, 0);
 
+    set_window_title("Mouse Math");
+    setup();
 
-
-  set_window_title("Mouse Math");
-  setup();
-
-
+    //FPS system that I didn't write
     while(!key[KEY_ESC] && !close_button_pressed){
-       while(ticks == 0){
-            rest(1);
-        }
-    while(ticks > 0){
+      while(ticks == 0){
+        rest(1);
+      }
+      while(ticks > 0){
         int old_ticks = ticks;
 
         update();
 
         ticks--;
         if(old_ticks <= ticks){
-            break;
+          break;
         }
-    }
-        if(game_time - old_time >= 10){
-            fps = frames_done;
-            frames_done = 0;
-            old_time = game_time;
-        }
+      }
+      if(game_time - old_time >= 10){
+        fps = frames_done;
+        frames_done = 0;
+        old_time = game_time;
+      }
         draw();
     }
 	return 0;
